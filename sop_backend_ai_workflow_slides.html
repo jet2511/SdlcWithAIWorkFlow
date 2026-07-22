@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOP Backend AI Workflow - Java/Spring Edition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* === RESET & VIEWPORT BASE === */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-dark: #090d16;
+      --bg-card: #131b2e;
+      --bg-card-hover: #1a243d;
+      --border-color: #233152;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --accent-emerald: #10b981;
+      --accent-cyan: #06b6d4;
+      --accent-amber: #f59e0b;
+      --accent-indigo: #6366f1;
+      --accent-rose: #f43f5e;
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* === SLIDE CONTAINER & PRESENTATION LAYOUT === */
+    .deck-container {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(0.98);
+      transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s;
+      padding: clamp(1.5rem, 4vh, 3.5rem) clamp(2rem, 5vw, 5rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+      z-index: 2;
+    }
+
+    /* === HEADER & FOOTER === */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: clamp(1rem, 2vh, 2rem);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: clamp(0.5rem, 1.5vh, 1rem);
+    }
+
+    .slide-tag {
+      font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.35rem 0.8rem;
+      border-radius: 6px;
+      background: rgba(6, 182, 212, 0.12);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .slide-title {
+      font-size: clamp(1.4rem, 3vh, 2.2rem);
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: clamp(1rem, 2.5vh, 2rem);
+      max-height: calc(100vh - 160px);
+      overflow-y: auto;
+    }
+
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: clamp(0.5rem, 1.5vh, 1rem);
+      border-top: 1px solid var(--border-color);
+      font-size: clamp(0.75rem, 1vw, 0.85rem);
+      color: var(--text-muted);
+    }
+
+    /* === COMPONENTS & UI CARDS === */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(1rem, 2vw, 2rem);
+      align-items: stretch;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(1rem, 1.5vw, 1.5rem);
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: clamp(1rem, 2vh, 1.5rem);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      position: relative;
+      transition: border-color 0.3s, background 0.3s;
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(6, 182, 212, 0.4);
+    }
+
+    .card-title {
+      font-size: clamp(0.95rem, 1.8vh, 1.15rem);
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-body {
+      font-size: clamp(0.8rem, 1.4vh, 0.95rem);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* === RACI TABLE === */
+    .raci-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: clamp(0.75rem, 1.3vh, 0.9rem);
+      background: var(--bg-card);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .raci-table th, .raci-table td {
+      padding: clamp(0.5rem, 1.2vh, 0.8rem) clamp(0.75rem, 1.2vw, 1rem);
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .raci-table th {
+      background: #182238;
+      color: var(--accent-cyan);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .raci-badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 800;
+      font-size: 0.75rem;
+    }
+    .raci-a { background: rgba(244, 63, 94, 0.2); color: var(--accent-rose); border: 1px solid var(--accent-rose); }
+    .raci-r { background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald); border: 1px solid var(--accent-emerald); }
+    .raci-c { background: rgba(245, 158, 11, 0.2); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+    .raci-i { background: rgba(99, 102, 241, 0.2); color: var(--accent-indigo); border: 1px solid var(--accent-indigo); }
+
+    /* === CODE BLOCK === */
+    .code-block {
+      background: #090e17;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: clamp(0.75rem, 1.5vh, 1rem);
+      font-family: var(--font-mono);
+      font-size: clamp(0.7rem, 1.2vh, 0.82rem);
+      color: #e2e8f0;
+      line-height: 1.45;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .code-kw { color: #f43f5e; font-weight: 600; }
+    .code-fn { color: #38bdf8; }
+    .code-str { color: #34d399; }
+    .code-cm { color: #64748b; font-style: italic; }
+
+    /* === HIGHLIGHT BADGES & FLOWCHART === */
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--bg-card);
+      padding: clamp(0.6rem, 1.2vh, 1rem);
+      border-radius: 8px;
+      border-left: 4px solid var(--accent-cyan);
+    }
+    .flow-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      color: #000;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    /* === TITLE SLIDE SPECIFIC === */
+    .hero-slide {
+      text-align: center;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+    .hero-badge {
+      background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      padding: 0.5rem 1.2rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .hero-title {
+      font-size: clamp(2.2rem, 5.5vh, 4rem);
+      font-weight: 800;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: clamp(1rem, 2vh, 1.3rem);
+      color: var(--text-muted);
+      max-width: 800px;
+      line-height: 1.6;
+    }
+
+    /* === NAVIGATION CONTROLS === */
+    .nav-bar {
+      position: absolute;
+      bottom: 1.2rem;
+      right: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      z-index: 10;
+    }
+
+    .nav-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      background: var(--accent-cyan);
+      color: #000;
+      border-color: var(--accent-cyan);
+    }
+
+    .progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-emerald));
+      width: 0%;
+      transition: width 0.3s ease;
+      z-index: 10;
+    }
+
+    .dots-indicator {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border-color);
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .dot.active {
+      background: var(--accent-cyan);
+      width: 20px;
+      border-radius: 4px;
+    }
+
+    /* Checkbox items */
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .checklist-icon {
+      color: var(--accent-emerald);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="deck-container">
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- SLIDE 1: HERO / TITLE -->
+  <div class="slide active" id="slide-1">
+    <div class="slide-header">
+      <span class="slide-tag">Standard Operating Procedure</span>
+      <span style="color: var(--text-dim); font-size: 0.85rem;">Project: IPAS / ODS Backend</span>
+    </div>
+    <div class="slide-content hero-slide">
+      <span class="hero-badge">Spec-Driven & Test-Driven Development</span>
+      <h1 class="hero-title">SOP Backend AI Workflow</h1>
+      <p class="hero-subtitle">
+        Quy trình hợp tác tối ưu giữa <strong>Tech Lead/Senior BE Engineer (Human)</strong> và <strong>AI Agent</strong>.<br>
+        Áp dụng thực tế cho bài toán phát triển Backend thuộc dự án <code>ods-backend</code> (Java/Spring Boot Multi-Module).
+      </p>
+      <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <span class="card-title" style="font-size: 0.85rem; color: var(--accent-emerald);">✔ 100% Contract-Driven</span>
+        <span class="card-title" style="font-size: 0.85rem; color: var(--accent-cyan);">✔ Zero N+1 Queries</span>
+        <span class="card-title" style="font-size: 0.85rem; color: var(--accent-amber);">✔ Rollback Ready</span>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Dành cho Backend Development Team</span>
+      <span>Dùng phím ➔ hoặc Spacebar để chuyển slide</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: OVERVIEW & RACI MATRIX -->
+  <div class="slide" id="slide-2">
+    <div class="slide-header">
+      <span class="slide-tag">Pha SDLC & RACI Matrix</span>
+      <h2 class="slide-title">Phân Định Trách Nhiệm (RACI)</h2>
+    </div>
+    <div class="slide-content">
+      <table class="raci-table">
+        <thead>
+          <tr>
+            <th>Pha SDLC</th>
+            <th>Tech Lead / Senior BE</th>
+            <th>AI Agent (Primary)</th>
+            <th>Subagent (Reviewer/Security)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Requirements & API/DB Planning</strong></td>
+            <td><span class="raci-badge raci-a">A / I</span> (Duyệt API/DB Plan)</td>
+            <td><span class="raci-badge raci-r">R</span> (Lập Plan, Verify Contract)</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td><strong>2. TDD & Defensive Execution</strong></td>
+            <td><span class="raci-badge raci-a">A</span> (Kiểm soát kiến trúc)</td>
+            <td><span class="raci-badge raci-r">R</span> (Viết Test, Service, Repo, Rollback)</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td><strong>3. Dual-Layer Quality Gate</strong></td>
+            <td><span class="raci-badge raci-a">A</span> (Sign-off & Duyệt merge)</td>
+            <td><span class="raci-badge raci-r">R</span> (Tạo Walkthrough, Chạy test)</td>
+            <td><span class="raci-badge raci-c">C</span> (Audit SOLID, Security, N+1)</td>
+          </tr>
+          <tr>
+            <td><strong>4. CI/CD & PR Creation</strong></td>
+            <td><span class="raci-badge raci-a">A</span> (Trigger Release)</td>
+            <td><span class="raci-badge raci-c">C</span> (Phân tích log CI/CD build)</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td><strong>5. Rules Evolution</strong></td>
+            <td><span class="raci-badge raci-a">A</span> (Phê duyệt Rule)</td>
+            <td><span class="raci-badge raci-r">R</span> (Update backend_guidelines.md)</td>
+            <td>-</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="grid-3" style="margin-top: 0.5rem;">
+        <div class="card">
+          <div class="card-title" style="color: var(--accent-rose);">Accountable (A)</div>
+          <div class="card-body">Tech Lead chịu trách nhiệm phê duyệt cuối cùng tại các Checkpoint 1 (Plan) & Checkpoint 2 (Review).</div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color: var(--accent-emerald);">Responsible (R)</div>
+          <div class="card-body">AI Agent trực tiếp nghiên cứu codebase, viết spec, thực thi TDD code và tạo bằng chứng test.</div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color: var(--accent-amber);">Consulted (C)</div>
+          <div class="card-body">Các Subagent chuyên biệt độc lập audit an ninh OWASP Top 10 và chống N+1 Query.</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>SOP Backend AI Workflow</span>
+      <span>Slide 2 / 7</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: PHASE 1 - SPEC-DRIVEN & MINH HỌA -->
+  <div class="slide" id="slide-3">
+    <div class="slide-header">
+      <span class="slide-tag">Phase 1: Spec-Driven Stage</span>
+      <h2 class="slide-title">Requirements & API/DB Planning</h2>
+    </div>
+    <div class="slide-content grid-2">
+      <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+        <div class="card" style="border-left: 4px solid var(--accent-cyan);">
+          <div class="card-title" style="color: var(--accent-cyan);">Bối Cảnh Task Ví Dụ (ods-backend)</div>
+          <div class="card-body">
+            <strong>Feature:</strong> Thêm API Lọc & Xuất File CSV Audit Log hệ thống.<br>
+            <strong>Modules ảnh hưởng:</strong> <code>ods-api</code>, <code>ods-service</code>, <code>ods-storage</code>.
+          </div>
+        </div>
+        
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div style="font-size: 0.85rem;">
+            <strong>Codebase Exploration:</strong> Dùng <code>grep_search</code> trace luồng dữ liệu <code>AuditLogController</code> ➔ <code>AuditLogService</code> ➔ <code>AuditLogRepository</code>.
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div style="font-size: 0.85rem;">
+            <strong>Contract Verification:</strong> Định nghĩa DTO Request/Response với <code>@NotNull</code>, <code>@Valid</code> khớp 100% với Frontend Plan.
+          </div>
+        </div>
+
+        <div class="flow-step" style="border-left-color: var(--accent-amber);">
+          <div class="flow-num" style="background: var(--accent-amber);">3</div>
+          <div style="font-size: 0.85rem;">
+            <strong>DB Migration & Rollback:</strong> Bắt buộc mọi script Liquibase/Flyway phải đi kèm kịch bản <code>rollback.xml</code>.
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+        <div style="font-weight: 700; font-size: 0.9rem; color: var(--accent-cyan);">📄 Plan Artifact: implementation_plan.md</div>
+        <div class="code-block">
+<span class="code-cm"># Implementation Plan: Audit Log Search & CSV Export</span>
+
+<span class="code-kw">## Checkpoint 1: Human Approval Required</span>
+- [x] API DTO contract validated with Frontend UI
+- [x] Liquibase Migration + Rollback Script ready
+
+<span class="code-kw">## Proposed Changes</span>
+### [MODIFY] [ods-api](file:///d:/Projects/IPAS/bep/ods/ods-backend/ods-api)
+- <span class="code-str">AuditLogController.java</span> (Add POST /api/v1/audit-logs/search)
+
+### [NEW] [ods-service](file:///d:/Projects/IPAS/bep/ods/ods-backend/ods-service)
+- <span class="code-str">AuditLogExportService.java</span> (CSV Streaming exporter)
+
+### [NEW] [ods-storage](file:///d:/Projects/IPAS/bep/ods/ods-backend/ods-storage)
+- <span class="code-str">v1.2__add_audit_log_indexes.xml</span> + Rollback script
+        </div>
+        <div class="card" style="background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3);">
+          <div class="card-title" style="color: var(--accent-amber); font-size: 0.9rem;">✋ Checkpoint 1 (Dev Approve Plan)</div>
+          <div class="card-body" style="font-size: 0.8rem;">Tech Lead duyệt Plan trước khi AI Agent ghi dòng code đầu tiên.</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>SOP Backend AI Workflow</span>
+      <span>Slide 3 / 7</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: PHASE 2 - TDD & DEFENSIVE EXECUTION -->
+  <div class="slide" id="slide-4">
+    <div class="slide-header">
+      <span class="slide-tag">Phase 2: TDD & Defensive Execution</span>
+      <h2 class="slide-title">Lập Trình Phòng Thủ & Test-Driven Development</h2>
+    </div>
+    <div class="slide-content grid-2">
+      <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+        <div class="card">
+          <div class="card-title" style="color: var(--accent-rose);">1. Chu Trình Red-Green-Refactor</div>
+          <div class="card-body">
+            • <strong>Red:</strong> Viết Unit Test (JUnit 5 + Mockito) chứng minh chưa có tính năng.<br>
+            • <strong>Green:</strong> Triển khai logic nghiệp vụ vừa đủ để Test pass.<br>
+            • <strong>Refactor:</strong> Tối ưu code mà không làm gãy test suite.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="color: var(--accent-emerald);">2. Chống N+1 Query (Phòng Thủ)</div>
+          <div class="card-body">
+            Sử dụng <code>@EntityGraph(attributePaths = {"user", "action"})</code> hoặc JOIN FETCH trong JPA Repository để ngăn nổ hàng ngàn query con.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="color: var(--accent-cyan);">3. Transaction Boundaries & Logging</div>
+          <div class="card-body">
+            • <code>@Transactional(readOnly = true)</code> cho query tra cứu.<br>
+            • Log chuẩn SLF4J: <code>logger.info("Exporting audit log user={}", userId)</code>.
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+        <div style="font-weight: 700; font-size: 0.9rem; color: var(--accent-emerald);">🧪 Implementation Code Snippet (ods-service)</div>
+        <div class="code-block">
+<span class="code-cm">// 1. TDD Test Case (JUnit 5 + Mockito)</span>
+<span class="code-kw">@Test</span>
+<span class="code-kw">void</span> <span class="code-fn">shouldFilterAuditLogsByDateRange</span>() {
+    Pageable page = PageRequest.<span class="code-fn">of</span>(0, 20);
+    Page&lt;AuditLog&gt; result = service.<span class="code-fn">search</span>(request, page);
+    <span class="code-fn">assertEquals</span>(1, result.<span class="code-fn">getTotalElements</span>());
+}
+
+<span class="code-cm">// 2. Repository Anti N+1 (@EntityGraph)</span>
+<span class="code-kw">@EntityGraph</span>(attributePaths = {<span class="code-str">"user"</span>, <span class="code-str">"targetResource"</span>})
+Page&lt;AuditLog&gt; <span class="code-fn">findAllByFilter</span>(AuditFilter filter, Pageable p);
+
+<span class="code-cm">// 3. Structured Logging (No String concat)</span>
+log.<span class="code-fn">info</span>(<span class="code-str">"Processing audit log search criteria={}"</span>, filter);
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>SOP Backend AI Workflow</span>
+      <span>Slide 4 / 7</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: PHASE 3 - DUAL-LAYER QUALITY GATE -->
+  <div class="slide" id="slide-5">
+    <div class="slide-header">
+      <span class="slide-tag">Phase 3: Dual-Layer Quality Gate</span>
+      <h2 class="slide-title">Kiểm Soát Chất Lượng & Audit Độc Lập</h2>
+    </div>
+    <div class="slide-content grid-2">
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div class="card" style="border-top: 4px solid var(--accent-amber);">
+          <div class="card-title" style="color: var(--accent-amber);">Layer 1: Subagent Self-Audit</div>
+          <div class="card-body" style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div class="checklist-item">
+              <span class="checklist-icon">✔</span>
+              <span><strong>Subagent code-reviewer:</strong> Audit SOLID design, code duplication, N+1 query patterns.</span>
+            </div>
+            <div class="checklist-item">
+              <span class="checklist-icon">✔</span>
+              <span><strong>Subagent security-auditor:</strong> Rà soát SQL Injection, IDOR, Parameter Tampering, Hardcoded secrets.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="border-top: 4px solid var(--accent-indigo);">
+          <div class="card-title" style="color: var(--accent-indigo);">Layer 2: Walkthrough & Test Evidence</div>
+          <div class="card-body">
+            Tạo <code>walkthrough.md</code> tổng hợp diff thay đổi và **chụp lại log 100% test pass** để Tech Lead có bằng chứng kiểm định nhanh chóng.
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+        <div style="font-weight: 700; font-size: 0.9rem; color: var(--accent-cyan);">📄 Artifact: walkthrough.md</div>
+        <div class="code-block">
+<span class="code-cm"># Walkthrough: Audit Log Filter & CSV Export</span>
+
+<span class="code-kw">## Subagent Audit Results</span>
+- <span class="code-str">code-reviewer:</span> PASSED (No N+1 query, Clean Repository layout)
+- <span class="code-str">security-auditor:</span> PASSED (CSV Injection sanitized, No PII logged)
+
+<span class="code-kw">## Automated Test Results</span>
+[INFO] Running com.ipas.ods.service.AuditLogServiceTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESSFUL
+        </div>
+        <div class="card" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+          <div class="card-title" style="color: var(--accent-emerald); font-size: 0.9rem;">✋ Checkpoint 2 (Human Sign-off)</div>
+          <div class="card-body" style="font-size: 0.8rem;">Senior Dev xem xét Walkthrough + Test Evidence để cấp phép Merge.</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>SOP Backend AI Workflow</span>
+      <span>Slide 5 / 7</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: PHASE 4 & 5 - RELEASE & RULES EVOLUTION -->
+  <div class="slide" id="slide-6">
+    <div class="slide-header">
+      <span class="slide-tag">Phase 4 & 5: Release & Evolution</span>
+      <h2 class="slide-title">CI/CD & Tích Lũy Tri Thức (Repo-as-Context)</h2>
+    </div>
+    <div class="slide-content grid-2">
+      <div class="card">
+        <div class="card-title" style="color: var(--accent-cyan);">Phase 4: CI/CD & PR Creation</div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <p>• Tuân thủ <strong>Conventional Commits</strong>:</p>
+          <div class="code-block">feat(audit): add filtered search & csv export API</div>
+          <p>• Đảm bảo không tạo Breaking Change trên API Public Contracts hiện tại.</p>
+          <p>• Pass toàn bộ các Quality Gate của SonarQube & CI Pipeline.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color: var(--accent-amber);">Phase 5: Rules Evolution (.gemini/rules)</div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <p>Khi phát hiện pattern mới hoặc lỗi lặp lại trong dự án <code>ods-backend</code>, AI Agent chủ động đề xuất cập nhật vào hệ thống Rule:</p>
+          <div class="code-block">
+.gemini/
+├── rules/
+│   ├── backend_guidelines.md  <span class="code-cm"># SLF4J, SOLID</span>
+│   ├── database_standards.md  <span class="code-cm"># Indexing, Liquibase</span>
+│   └── security_rules.md      <span class="code-cm"># OWASP Backend</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>SOP Backend AI Workflow</span>
+      <span>Slide 6 / 7</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: CASE STUDY SUMMARY & CHECKLIST -->
+  <div class="slide" id="slide-7">
+    <div class="slide-header">
+      <span class="slide-tag">Case Study Summary</span>
+      <h2 class="slide-title">Tổng Kết Workflow Cho ods-backend</h2>
+    </div>
+    <div class="slide-content grid-3">
+      <div class="card" style="border-top: 4px solid var(--accent-cyan);">
+        <div class="card-title" style="color: var(--accent-cyan);">Phase 1: Planning</div>
+        <div class="card-body">
+          • Trace code <code>ods-api</code> & <code>ods-service</code>.<br>
+          • Viết Liquibase Migration + Rollback.<br>
+          • Dev duyệt <code>implementation_plan.md</code>.
+        </div>
+      </div>
+
+      <div class="card" style="border-top: 4px solid var(--accent-emerald);">
+        <div class="card-title" style="color: var(--accent-emerald);">Phase 2 & 3: TDD & Gate</div>
+        <div class="card-body">
+          • Viết Test Red ➔ Green.<br>
+          • <code>@EntityGraph</code> chống N+1 query.<br>
+          • Subagent audit Security & SOLID.<br>
+          • Dev duyệt <code>walkthrough.md</code>.
+        </div>
+      </div>
+
+      <div class="card" style="border-top: 4px solid var(--accent-amber);">
+        <div class="card-title" style="color: var(--accent-amber);">Phase 4 & 5: Release</div>
+        <div class="card-body">
+          • Conventional Commit.<br>
+          • CI/CD Release.<br>
+          • Cập nhật <code>backend_guidelines.md</code> nếu có rule mới.
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>SOP Backend AI Workflow - Hoàn tất</span>
+      <span>Slide 7 / 7</span>
+    </div>
+  </div>
+
+  <!-- NAVIGATION CONTROLS -->
+  <div class="nav-bar">
+    <div class="dots-indicator" id="dotsContainer"></div>
+    <button class="nav-btn" id="prevBtn" title="Previous Slide (←)">‹</button>
+    <button class="nav-btn" id="nextBtn" title="Next Slide (→)">›</button>
+  </div>
+</div>
+
+<script>
+  // === SLIDE NAVIGATION LOGIC ===
+  const slides = document.querySelectorAll('.slide');
+  const progressBar = document.getElementById('progressBar');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const dotsContainer = document.getElementById('dotsContainer');
+
+  let currentSlide = 0;
+  const totalSlides = slides.length;
+
+  // Create Navigation Dots
+  slides.forEach((_, idx) => {
+    const dot = document.createElement('div');
+    dot.classList.add('dot');
+    if (idx === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => goToSlide(idx));
+    dotsContainer.appendChild(dot);
+  });
+
+  const dots = document.querySelectorAll('.dot');
+
+  function updateSlides() {
+    slides.forEach((slide, idx) => {
+      slide.classList.toggle('active', idx === currentSlide);
+    });
+
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === currentSlide);
+    });
+
+    // Update Progress Bar
+    const progress = ((currentSlide + 1) / totalSlides) * 100;
+    progressBar.style.width = `${progress}%`;
+  }
+
+  function goToSlide(index) {
+    if (index >= 0 && index < totalSlides) {
+      currentSlide = index;
+      updateSlides();
+    }
+  }
+
+  function nextSlide() {
+    if (currentSlide < totalSlides - 1) {
+      currentSlide++;
+      updateSlides();
+    }
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) {
+      currentSlide--;
+      updateSlides();
+    }
+  }
+
+  // Event Listeners
+  nextBtn.addEventListener('click', nextSlide);
+  prevBtn.addEventListener('click', prevSlide);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+      e.preventDefault();
+      nextSlide();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prevSlide();
+    }
+  });
+
+  // Initialize
+  updateSlides();
+</script>
+</body>
+</html>

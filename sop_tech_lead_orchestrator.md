@@ -1,5 +1,9 @@
 # Standard Operating Procedure (SOP): AI Agent Workflow Cho Tech Lead / Orchestrator
 
+> [!NOTE]
+> **PLATFORM AGNOSTIC NOTICE**
+> Tài liệu này được thiết kế độc lập với nền tảng AI. Hướng dẫn áp dụng nhất quán cho bất kỳ AI Agent nào (Antigravity, Claude Code, Cursor, Windsurf, Copilot, v.v.).
+
 ## 1. Tổng Quan Vai Trò Của Tech Lead Trong AI-Driven SDLC
 
 Trong mô hình **Spec-Driven SDLC**, **Tech Lead / Software Architect** đóng vai trò là **System Orchestrator & Quality Supervisor**. Tech Lead không trực tiếp viết toàn bộ code mà chịu trách nhiệm điều phối luồng làm việc liên vai trò (Cross-Role Orchestration) giữa BA, Backend, Frontend và QA/QC, đảm bảo tính nhất quán kiến trúc, quản lý thay đổi (Spec Drift) và làm người phê duyệt cuối cùng (Final Approver).
@@ -67,7 +71,21 @@ flowchart TD
 
 ---
 
-## 4. Checklist Phê Duyệt Dành Cho Tech Lead (Orchestrator Quality Gate)
+## 4. Công Cụ Hỗ Trợ: Recommended Skills & MCP Servers Cho Tech Lead
+
+### MCP Servers Ưu Tiên:
+- **`github` / `gitlab`**: Quản lý repository, tạo & review Pull Request, kiểm tra status của CI/CD pipeline.
+- **`jira` / `confluence`**: Quản lý Sprint Epic/Tickets, liên kết PRD Spec với công việc triển khai.
+- **`mysql` / `postgresql`**: Đối soát trực tiếp Database Migration schema và index performance.
+
+### Skills Quy Trình Ưu Tiên:
+- **`architect-review`**: Rà soát tính toàn vẹn kiến trúc, đảm bảo tuân thủ SOLID, Clean Architecture và microservice boundaries.
+- **`architecture-decision-records` (ADR)**: Ghi lại các quyết định kiến trúc quan trọng và lý do lựa chọn.
+- **`code-review-and-quality`**: Đánh giá đa chiều chất lượng code trước khi duyệt Merge vào nhánh chính.
+
+---
+
+## 5. Checklist Phê Duyệt Dành Cho Tech Lead (Orchestrator Quality Gate)
 
 > [!IMPORTANT]
 > **Tech Lead Project Release Sign-off Checklist**
