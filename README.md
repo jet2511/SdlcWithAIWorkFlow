@@ -64,9 +64,10 @@ flowchart TD
 │       ├── project-architecture/     # Sơ đồ phân tầng & Controller-Service-Repo map
 │       └── unit-testing/             # Patterns viết unit & integration test
 ├── docs/
-│   ├── specs/                        # Tài liệu PRD_v1.x.md & Mermaid diagrams từ BA
-│   ├── test-matrices/                # Test matrices & E2E script specs từ QA
-│   └── walkthroughs/                 # Bằng chứng nghiệm thu (Walkthrough logs, UI screenshots)
+├── scenarios/                        # Kịch bản phối hợp mẫu (Simple & Complex Orchestration Scenarios)
+├── specs/                        # Tài liệu PRD_v1.x.md & Mermaid diagrams từ BA
+├── test-matrices/                # Test matrices & E2E script specs từ QA
+└── walkthroughs/                 # Bằng chứng nghiệm thu (Walkthrough logs, UI screenshots)
 ├── sop_tech_lead_orchestrator.md
 ├── sop_ba_ai_workflow.md
 ├── sop_backend_ai_workflow.md
